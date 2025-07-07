@@ -13,7 +13,7 @@ import java.util.List;
 */
 public interface UserService extends IService<User> {
 
-    public long userRegister(String userAccount, String password,String checkPassword);
+    public long userRegister(String userAccount, String password,String checkPassword,String email);
 
     public User userLogin(String userAccount, String password, HttpServletRequest request);
 
@@ -25,4 +25,6 @@ public interface UserService extends IService<User> {
     boolean userUpdate(User user);
 
     List<User> searchAllByTags(List<String> tagsList);
+
+    boolean checkEmail(String email);
 }

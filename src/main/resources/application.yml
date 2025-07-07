@@ -1,10 +1,24 @@
 # DataSource Config
 spring:
+  mail:
+    default-encoding: UTF-8
+    host: smtp.qq.com
+    password: yours
+    port: 587
+    protocol: smtp
+    properties:
+      "mail.smtp.connectiontimeout": 60000
+      "mail.smtp.timeout": 60000
+      "mail.smtp.writetimeout": 60000
+      "mail.smtp.auth": true
+      "mail.smtp.starttls.enable": true
+      "mail.smtp.starttls.required": true
+    username: yours
   application:
     name: findFriend-backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/daylight
+    url: jdbc:mysql://localhost:3306/base
     username: root
     password: 123456
 #    NRRH3prTcs7es2An
@@ -15,7 +29,7 @@ spring:
       port: 6379
       database: 0
   session:
-    timeout: 21600
+    timeout: 1m
 
 mybatis-plus:
     configuration:

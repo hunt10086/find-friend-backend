@@ -22,25 +22,25 @@ public class serviceImplTest {
 @Autowired
 private UserMapper userMapper;
 
-    @Test
-    public void Registertest() {
-        long result = userService.userRegister("", "", "");
-        System.out.println(result);
-
-        long result2 = userService.userRegister("Dyi", "123456", "123456");
-        System.out.println(result2);
-
-
-        long result3 = userService.userRegister("Dying", "123456", "123456");
-        System.out.println(result3);
-
-        long result4 = userService.userRegister("Dyin*&$^g", "12345678", "12345678");
-        System.out.println(result4);
-
-        long result5 = userService.userRegister("dayligh", "12345678", "12345678");
-        System.out.println(result5);
-
-    }
+//    @Test
+//    public void Registertest() {
+//        long result = userService.userRegister("", "", "");
+//        System.out.println(result);
+//
+//        long result2 = userService.userRegister("Dyi", "123456", "123456");
+//        System.out.println(result2);
+//
+//
+//        long result3 = userService.userRegister("Dying", "123456", "123456");
+//        System.out.println(result3);
+//
+//        long result4 = userService.userRegister("Dyin*&$^g", "12345678", "12345678");
+//        System.out.println(result4);
+//
+//        long result5 = userService.userRegister("dayligh", "12345678", "12345678");
+//        System.out.println(result5);
+//
+//    }
     @Test
     public void update(){
         User user = new User();

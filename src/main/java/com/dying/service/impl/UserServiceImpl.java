@@ -10,12 +10,13 @@ import com.dying.exception.BusinessException;
 import com.dying.service.UserService;
 import com.dying.mapper.UserMapper;
 import com.dying.utils.MD5Utils;
+import com.dying.utils.RegexUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -39,13 +40,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private static final String SALT = "Dying";
     //private static final String USER_LOGIN_STATE = "userLoginState";
     @Override
-    public long userRegister(String userAccount, String password, String checkPassword) {
+    public long userRegister(String userAccount, String password, String checkPassword,String email) {
         //账号密码不能为空
         if (StringUtils.isBlank(userAccount) || StringUtils.isBlank(password)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号密码为空");
         }
         if (StringUtils.isBlank(checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"第二次输入密码为空");
+        }
+        if(StringUtils.isBlank(email)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"邮箱");
+        }
+        if(!RegexUtils.isEmailInvalid(email)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"邮箱格式错误");
         }
         //账号大于四位
         if (userAccount.length() < 4) {
@@ -57,6 +64,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         //账号不能重复
         User flag = userMapper.findAllByUserAccountBoolean(userAccount);
+
         if (flag!=null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号不能重复");
         }
@@ -75,6 +83,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(newpassword);
+        user.setEmail(email);
         user.setUserStatus(0);
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
@@ -179,6 +188,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> userList = userMapper.selectList(queryWrapper);
         return userList.stream().map(this::getSaftyUser).collect(Collectors.toList());
     }
+
+    @Override
+    public boolean checkEmail(String email){
+        if(StringUtils.isBlank(email)){
+            return false;
+        }
+        if(!RegexUtils.isEmailInvalid(email)){
+            return false;
+        }
+        return true;
+    }
+
 
 }
 

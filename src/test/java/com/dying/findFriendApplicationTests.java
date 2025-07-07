@@ -1,5 +1,7 @@
 package com.dying;
 
+import cn.hutool.Hutool;
+import cn.hutool.core.lang.Validator;
 import com.dying.domain.User;
 import com.dying.mapper.UserMapper;
 import com.dying.service.UserService;
@@ -30,6 +32,13 @@ class findFriendApplicationTests {
         for(User user:list){
             System.out.println(user.toString());
         }
+    }
+
+    @Test
+    void checkEmail(){
+//        boolean flag = userService.checkEmail();
+        boolean flag= Validator.isEmail("2646130539@qq.com");
+        System.out.println("flag:"+flag);
     }
 
 

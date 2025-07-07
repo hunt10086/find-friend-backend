@@ -1,5 +1,6 @@
 package com.dying.controller;
 
+import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.dying.common.BaseResponse;
@@ -11,18 +12,26 @@ import com.dying.domain.request.UserLoginRequest;
 import com.dying.domain.request.UserRegisterRequest;
 import com.dying.exception.BusinessException;
 import com.dying.service.UserService;
+import com.dying.service.impl.emailServiceImpl;
+import com.dying.utils.RegexUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.dying.constant.UserConstant.USER_CHECK_CODE;
 import static com.dying.constant.UserConstant.USER_LOGIN_STATE;
 
 
@@ -38,9 +47,25 @@ import static com.dying.constant.UserConstant.USER_LOGIN_STATE;
 @Slf4j
 public class  UserController {
 
-    @Autowired
+    @Resource
     private UserService userService;
+    @Resource
+    private emailServiceImpl emailServiceImpl;
 
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Operation(summary = "发送验证码")
+    @GetMapping("/sendCode")
+    public BaseResponse<Long>sendCode(@RequestParam String email) throws MessagingException, UnsupportedEncodingException {
+        boolean flag = userService.checkEmail(email);
+        if(!flag) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"验证码发送失败");
+        }
+        String code=emailServiceImpl.sendEmailBackCode(email);
+        stringRedisTemplate.opsForValue().set(USER_CHECK_CODE+email,code,5, TimeUnit.MINUTES);
+        return ResultUtils.success(1L);
+    }
 
     @Operation(summary = "注册请求")
     @PostMapping("/register")
@@ -51,13 +76,21 @@ public class  UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
+        String email=userRegisterRequest.getEmail();
+        String code=userRegisterRequest.getCode();
         if(!userPassword.equals(checkPassword)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"两次密码不一致");
         }
         if (StringUtils.isBlank(userAccount) || StringUtils.isBlank(userPassword) || StringUtils.isBlank(checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号或密码为空");
         }
-        long l = userService.userRegister(userAccount, userPassword, checkPassword);
+        if(StringUtils.isBlank(email)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"邮箱为空");
+        }
+        if(!code.equals(stringRedisTemplate.opsForValue().get(USER_CHECK_CODE+email))){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"验证码错误");
+        }
+        long l = userService.userRegister(userAccount, userPassword, checkPassword,email);
         return ResultUtils.success(l);
     }
 
