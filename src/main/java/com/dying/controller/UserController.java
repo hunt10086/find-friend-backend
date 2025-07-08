@@ -108,7 +108,6 @@ public class  UserController {
         return ResultUtils.success(saftyUser);
     }
 
-
     @Operation(summary = "登录请求")
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
@@ -178,9 +177,6 @@ public class  UserController {
         return ResultUtils.success(list);
     }
 
-
-
-
     @Operation(summary = "用户更新")
     @PostMapping("/update")
     public BaseResponse<Boolean> userUpdate(@RequestBody User user, HttpServletRequest request) {
@@ -207,6 +203,18 @@ public class  UserController {
         }
         int result = userService.userLogout(request);
         return ResultUtils.success(result > 0);
+    }
+
+    @Operation(summary = "主页用户推荐")
+    @GetMapping("/listLike")
+    public BaseResponse<List<User>> userListLike(Integer count,HttpServletRequest request) {
+        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) attribute;
+        if(currentUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
+        }
+        List<User> list=userService.backLike(currentUser,count);
+        return ResultUtils.success(list);
     }
 
     public boolean isAdmin(HttpServletRequest request) {

@@ -1,8 +1,13 @@
 package com.dying.service.impl;
 
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONUtil;
+import cn.hutool.poi.excel.sax.SheetRidReader;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dying.common.ErrorCode;
 import com.dying.domain.User;
@@ -14,15 +19,18 @@ import com.dying.utils.RegexUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.dying.constant.UserConstant.USER_LOGIN_STATE;
+import static com.dying.constant.UserConstant.*;
 
 /**
  * @author 666
@@ -36,6 +44,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private UserMapper userMapper;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     private static final String SALT = "Dying";
     //private static final String USER_LOGIN_STATE = "userLoginState";
@@ -126,8 +137,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //记录用户登录态
         request.getSession().setAttribute(USER_LOGIN_STATE,saftyUser);
 
+
         return saftyUser;
     }
+
     @Override
     public User getSaftyUser(User originUser) {
         if(originUser==null){
@@ -158,9 +171,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return true;
     }
 
-
-
-
     @Override
     public int userLogout(HttpServletRequest request) {
         if(request == null){
@@ -182,12 +192,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"标签列表为空");
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if(stringRedisTemplate.opsForValue().get(USER_LIKE_STATE+tagsList)!=null){
+            return JSONUtil.toList(stringRedisTemplate.opsForValue().get(USER_LIKE_STATE+tagsList),User.class);
+        }
         for (String tag : tagsList) {
            queryWrapper=queryWrapper.like("tags",tag);
         }
         List<User> userList = userMapper.selectList(queryWrapper);
-        return userList.stream().map(this::getSaftyUser).collect(Collectors.toList());
-    }
+        List<User> list= userList.stream().map(this::getSaftyUser).collect(Collectors.toList());
+        stringRedisTemplate.opsForValue().set(USER_LIKE_STATE+tagsList,JSONUtil.toJsonStr(list),USER_REDIS_EXPIRE, TimeUnit.MINUTES);
+        return list;    }
 
     @Override
     public boolean checkEmail(String email){
@@ -200,7 +214,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return true;
     }
 
-
+    @Override
+    public List<User> backLike(User loginUser,Integer count){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        String s=loginUser.getTags();
+        if("".equals(s)){
+            s=USER_DEFAULT_TAGS;
+        }
+        List<String> tagsList=JSONUtil.toList(JSONUtil.parseArray(s),String.class);
+        if(stringRedisTemplate.opsForValue().get(USER_LIKE_STATE+loginUser.getTags()+count)!=null){
+            return JSONUtil.toList(stringRedisTemplate.opsForValue().get(USER_LIKE_STATE+loginUser.getTags()+count),User.class);
+        }
+        for (String tag : tagsList) {
+            queryWrapper=queryWrapper.like("tags",tag);
+        }
+        IPage<User> page=new Page<>(count,USER_PAGE_SIZE);
+        userMapper.selectPage(page,queryWrapper);
+        List<User> userList = page.getRecords();
+        List<User> list= userList.stream().map(this::getSaftyUser).collect(Collectors.toList());
+        stringRedisTemplate.opsForValue().set(USER_LIKE_STATE+loginUser.getTags()+count,JSONUtil.toJsonStr(list),USER_REDIS_EXPIRE, TimeUnit.MINUTES);
+        return list;
+    }
 }
 
 
