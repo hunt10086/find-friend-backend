@@ -14,6 +14,7 @@ import lombok.Data;
 @TableName(value = "user")
 @Data
 public class User implements Serializable{
+    private static final long serialVersionUID = -4112100570009245441L; // 与序列化时一致
     /**
      * 主键
      */
@@ -78,7 +79,7 @@ public class User implements Serializable{
      * 是否删除 0 - 未删除 1 - 删除
      */
     @TableLogic
-    private Integer isdelete;
+    private Integer isDelete;
 
     /**
      * 用户角色 0 - 普通用户 1 - 管理员

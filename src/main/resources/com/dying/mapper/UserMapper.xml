@@ -16,7 +16,7 @@
             <result property="userStatus" column="user_status" />
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
-            <result property="isdelete" column="isDelete" />
+            <result property="isDelete" column="is_delete" />
             <result property="userRole" column="user_role" />
             <result property="tags" column="tags" />
             <result property="profile" column="profile" />
@@ -25,7 +25,7 @@
     <sql id="Base_Column_List">
         id,user_name,user_account,avatar_url,gender,user_password,
         phone,email,user_status,create_time,update_time,
-        isDelete,user_role,tags,profile
+        is_delete,user_role,tags,profile
     </sql>
     <select id="findAllByUserAccountBoolean" resultType="java.lang.Boolean">
         select * from user where user_account =#{userAccount}

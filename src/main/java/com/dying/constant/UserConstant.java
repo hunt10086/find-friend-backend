@@ -1,8 +1,6 @@
 package com.dying.constant;
 
 
-import java.util.List;
-
 public interface UserConstant {
 
      String USER_LOGIN_STATE = "userLoginState";

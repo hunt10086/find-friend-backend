@@ -214,7 +214,7 @@ public class  UserController {
             throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
         }
         List<User> list=userService.backLike(currentUser,count);
-        return ResultUtils.success(list);
+        return ResultUtils.success(list,list.size());
     }
 
     public boolean isAdmin(HttpServletRequest request) {

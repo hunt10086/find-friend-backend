@@ -18,4 +18,9 @@ public class ResultUtils {
         return new BaseResponse(errorCode.getCode(),message,description);
     }
 
+    public static<T> BaseResponse<T> success(T data,int count) {
+        return new BaseResponse<>(count,data,"success");
+    }
+
+
 }
