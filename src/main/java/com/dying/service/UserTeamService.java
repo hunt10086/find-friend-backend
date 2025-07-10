@@ -1,7 +1,11 @@
 package com.dying.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dying.domain.User;
 import com.dying.domain.UserTeam;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 
 /**
@@ -11,4 +15,5 @@ import com.dying.domain.UserTeam;
 */
 public interface UserTeamService extends IService<UserTeam> {
 
+    List<User> getTeamPeople(Long id, User loginUser);
 }

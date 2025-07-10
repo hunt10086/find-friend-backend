@@ -1,22 +1,17 @@
 package com.dying.domain.request;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 /**
  * @Author daylight
- * @Date 2025/7/9 15:06
+ * @Date 2025/7/10 10:54
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TeamDTO {
-
-    private Long id;
+public class CreateTeamRequest {
     /**
      * 队伍名称
      */
@@ -44,19 +39,8 @@ public class TeamDTO {
     private Integer status;
 
     /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     *更新时间
-     */
-    private Date updateTime;
-
-    /**
      * 密码
      */
     private String password;
-
 
 }

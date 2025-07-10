@@ -13,6 +13,8 @@ import java.util.Date;
 @TableName(value ="team")
 @Data
 public class Team implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     /**
      * id
      */
@@ -57,9 +59,10 @@ public class Team implements Serializable {
     private Date createTime;
 
     /**
-     * 
+     * 更新时间
      */
     private Date updateTime;
+
 
     /**
      * 是否删除
