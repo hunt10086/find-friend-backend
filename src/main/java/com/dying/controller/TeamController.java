@@ -68,13 +68,13 @@ public class TeamController {
             throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
         }
         List<TeamDTO> res=teamService.getTeamList(user,count);
-        return ResultUtils.success(res);
+        return ResultUtils.success(res,res.size());
     }
 
     @Operation(summary = "更新队伍")
     @PostMapping("/update")
-    public BaseResponse<Boolean> updateTeam(@RequestBody TeamDTO[] teamArr, HttpServletRequest request) {
-        if(teamArr==null){
+    public BaseResponse<Boolean> updateTeam(@RequestBody TeamDTO teamDto, HttpServletRequest request,Long id) {
+        if(teamDto==null||id<=0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"更新队伍参数为空");
         }
         Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
@@ -82,7 +82,7 @@ public class TeamController {
         if (user == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
         }
-        boolean flag=teamService.updateTeam(teamArr,user);
+        boolean flag=teamService.updateTeam(id,user,teamDto);
         return ResultUtils.success(flag);
     }
 
@@ -149,6 +149,21 @@ public class TeamController {
             throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
         }
         List<TeamDTO> res=teamService.getJoinTeam(user);
+        return ResultUtils.success(res);
+    }
+
+    @Operation(summary = "根据队伍名搜索队伍")
+    @GetMapping("/search")
+    public BaseResponse<List<TeamDTO>> searchTeam(String teamName,HttpServletRequest request) {
+        if(teamName==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍不存在");
+        }
+        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) attribute;
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
+        }
+        List<TeamDTO> res=teamService.searchTeam(teamName,user);
         return ResultUtils.success(res);
     }
 }

@@ -20,9 +20,9 @@ public interface TeamService extends IService<Team> {
 
     List<TeamDTO> getTeamList(User loginUser,Integer count);
 
-    boolean updateTeam(TeamDTO[] teamArr, User loginUser);
+    boolean updateTeam(Long id, User loginUser, TeamDTO teamDto);
 
-    boolean joinTeam(TeamDTO teamDTO, User loginUser,String password);
+    boolean joinTeam(TeamDTO teamDTO, User loginUser, String password);
 
     boolean quitTeam(TeamDTO teamDTO, User loginUser);
 
@@ -31,6 +31,8 @@ public interface TeamService extends IService<Team> {
     List<TeamDTO> getMyTeam(User loginUser);
 
     List<TeamDTO> getJoinTeam(User loginUser);
+
+    List<TeamDTO> searchTeam(String teamName, User loginUser);
 
     List<TeamDTO> getOneTeam(Long id, User loginUser);
 }

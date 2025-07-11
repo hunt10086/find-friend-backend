@@ -43,4 +43,9 @@ public class CreateTeamRequest {
      */
     private String password;
 
+    /**
+     *  队伍头像
+     */
+    private String icon;
+
 }

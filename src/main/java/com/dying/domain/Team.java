@@ -63,6 +63,11 @@ public class Team implements Serializable {
      */
     private Date updateTime;
 
+    /**
+     *  队伍头像
+     */
+    private String icon;
+
 
     /**
      * 是否删除

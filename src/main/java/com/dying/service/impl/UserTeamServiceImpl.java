@@ -7,6 +7,7 @@ import com.dying.domain.User;
 import com.dying.domain.UserTeam;
 import com.dying.mapper.UserMapper;
 import com.dying.mapper.UserTeamMapper;
+import com.dying.service.UserService;
 import com.dying.service.UserTeamService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,9 @@ public class UserTeamServiceImpl extends ServiceImpl<UserTeamMapper, UserTeam>
     @Resource
     private UserTeamMapper userTeamMapper;
 
+    @Resource
+    private UserService userService;
+
     @Override
     public List<User> getTeamPeople(Long teamId, User loginUser){
         if(loginUser==null||loginUser.getId()==null||loginUser.getId()<=0||teamId<=0){
@@ -42,7 +46,7 @@ public class UserTeamServiceImpl extends ServiceImpl<UserTeamMapper, UserTeam>
         }
         List<User> users = new ArrayList<>();
         for(UserTeam userTeam:userTeams){
-            User user = userMapper.selectById(userTeam.getUserId());
+            User user = userService.getSaftyUser(userMapper.selectById(userTeam.getUserId()));
             users.add(user);
         }
         return users;

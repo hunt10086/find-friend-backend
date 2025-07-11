@@ -58,5 +58,11 @@ public class TeamDTO {
      */
     private String password;
 
+    /**
+     *  队伍头像
+     */
+    private String icon;
+
+
 
 }

@@ -14,10 +14,11 @@
             <result property="password" column="password" />
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
+            <result property="icon" column="icon" />
             <result property="isDelete" column="is_delete" /></resultMap>
 
     <sql id="Base_Column_List">
         id,team_name,description,max_num,user_id,status,
-        password,create_time,update_time,is_delete
+        password,create_time,update_time,is_delete,icon
     </sql>
 </mapper>

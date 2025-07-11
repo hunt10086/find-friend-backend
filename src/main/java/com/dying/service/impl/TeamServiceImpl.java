@@ -100,9 +100,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
-        //2. 分页返回所有队伍
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+        //2. 分页返回所有队伍 不包含创建的和加入的
+        Long[] Ids = userTeamMapper.selectTeam(loginUser.getId());
+        System.out.println(Ids.length);
+        System.out.println("==================");
         IPage<Team> ipage = new Page<>(count, TEAM_SIZE);
+        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("id", (Object[]) Ids);
         List<Team> teamList = teamMapper.selectList(ipage, queryWrapper);
         List<TeamDTO> teamDTOList = new ArrayList<>();
         for (Team team : teamList) {
@@ -114,27 +118,27 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     @Override
-    public boolean updateTeam(TeamDTO[] teamArr, User loginUser) {
+    public boolean updateTeam(Long id, User loginUser, TeamDTO teamDto) {
         // 1. 检验请求参数是否为空
-        if (teamArr == null || teamArr.length != 2) {
+        if (teamDto == null ||id<=0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         // 2. 检验用户登录态
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
+        Team team = teamMapper.selectById(id);
+         Long uId=team.getUserId();
         // 3.检验身份为队长或管理员
-        TeamDTO teamDto = teamArr[0];
-        TeamDTO newTeamDto = teamArr[1];
-        if (loginUser.getUserRole() != ADMIN_ROLE && !Objects.equals(loginUser.getId(), teamDto.getUserId())) {
+        if (loginUser.getUserRole() != ADMIN_ROLE && !Objects.equals(loginUser.getId(), uId)) {
             throw new BusinessException(ErrorCode.NO_AUTO, "无权限");
         }
         // 4. 检验队伍名长度是否<=32
-        String teamName = newTeamDto.getTeamName();
-        String description = newTeamDto.getDescription();
-        String password = newTeamDto.getPassword();
-        int status = newTeamDto.getStatus();
-        int maxNum = newTeamDto.getMaxNum();
+        String teamName = teamDto.getTeamName();
+        String description = teamDto.getDescription();
+        String password = teamDto.getPassword();
+        int status = teamDto.getStatus();
+        int maxNum = teamDto.getMaxNum();
         if (StringUtils.isBlank(teamName) || teamName.length() > TEAM_MAX_NAME_LENGTH) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
@@ -153,8 +157,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍描述过长");
         }
         // 8.若信息相同不触发更新
-        if (teamName.equals(teamDto.getTeamName()) && description.equals(teamDto.getDescription())
-                && status == teamDto.getStatus() && maxNum == teamDto.getMaxNum()) {
+        if (teamName.equals(team.getTeamName()) && description.equals(team.getDescription())
+                && status == team.getStatus() && maxNum == team.getMaxNum()) {
             if (status == 1) {
                 if (password.equals(teamDto.getPassword())) {
                     return true;
@@ -163,10 +167,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             return true;
         }
         // 9.更新
-        Team team = new Team();
-        BeanUtils.copyProperties(newTeamDto, team);
+        Team team1 = new Team();
+        BeanUtils.copyProperties(teamDto, team1);
         team.setUpdateTime(new Date());
-        int i = teamMapper.updateById(team);
+        int i = teamMapper.updateById(team1);
         return i == 1;
     }
 
@@ -324,6 +328,22 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         return teamDTOs;
     }
 
+    @Override
+    public List<TeamDTO> searchTeam(String teamName, User loginUser){
+        if(loginUser==null||teamName==null){
+            return null;
+        }
+        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like("team_name", teamName);
+        List<Team> teams = teamMapper.selectList(queryWrapper);
+        List<TeamDTO> teamDTOs = new ArrayList<>();
+        for (Team team : teams) {
+            TeamDTO teamDTO = new TeamDTO();
+            BeanUtils.copyProperties(team, teamDTO);
+            teamDTOs.add(teamDTO);
+        }
+        return teamDTOs;
+    }
 
     @Override
     public List<TeamDTO> getOneTeam(Long teamId, User loginUser){

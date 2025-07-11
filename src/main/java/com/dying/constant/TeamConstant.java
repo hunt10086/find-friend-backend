@@ -18,4 +18,6 @@ public interface TeamConstant {
 
     int TEAM_SIZE = 6;
 
+
+    //TODO 完善包含新增队伍头像类的逻辑
 }
