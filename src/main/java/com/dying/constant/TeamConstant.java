@@ -18,6 +18,6 @@ public interface TeamConstant {
 
     int TEAM_SIZE = 6;
 
+    int TEAM_MAX_ICON_LENGTH = 512;
 
-    //TODO 完善包含新增队伍头像类的逻辑
 }

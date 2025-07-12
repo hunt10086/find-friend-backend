@@ -18,6 +18,7 @@ import com.dying.service.TeamService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -112,6 +113,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         for (Team team : teamList) {
             TeamDTO teamDTO = new TeamDTO();
             BeanUtils.copyProperties(team, teamDTO);
+            teamDTO.setPassword("");
             teamDTOList.add(teamDTO);
         }
         return teamDTOList;
@@ -139,6 +141,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         String password = teamDto.getPassword();
         int status = teamDto.getStatus();
         int maxNum = teamDto.getMaxNum();
+        String icon = teamDto.getIcon();
         if (StringUtils.isBlank(teamName) || teamName.length() > TEAM_MAX_NAME_LENGTH) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
@@ -156,9 +159,12 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         if (description.length() > TEAM_MAX_DESCRIPTION_LENGTH) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍描述过长");
         }
+        if(icon.length()>TEAM_MAX_ICON_LENGTH){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "头像链接过长");
+        }
         // 8.若信息相同不触发更新
         if (teamName.equals(team.getTeamName()) && description.equals(team.getDescription())
-                && status == team.getStatus() && maxNum == team.getMaxNum()) {
+                && status == team.getStatus() && maxNum == team.getMaxNum()&&icon.equals(team.getIcon())) {
             if (status == 1) {
                 if (password.equals(teamDto.getPassword())) {
                     return true;
@@ -174,6 +180,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         return i == 1;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean joinTeam(TeamDTO teamDTO, User loginUser, String password) {
         // 1. 检验请求参数是否为空
@@ -220,6 +227,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         return i == 1;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean quitTeam(TeamDTO teamDTO, User loginUser) {
         // 1. 检查请求参数是否为空
@@ -231,6 +239,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             return false;
         }
         // 3. 检验是否入队
+        Team team = teamMapper.selectById(teamDTO.getId());
         QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
         Long id = loginUser.getId();
         queryWrapper.eq("team_id", teamDTO.getId());
@@ -250,13 +259,12 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             return true;
         }
         // 5. 大于一人，队长退出，队长权转移给剩下最早加入队伍的用户
-        if (Objects.equals(id, teamDTO.getUserId())) {
+        if (Objects.equals(id, team.getUserId())) {
             Long[] ids = userTeamMapper.selectByJoinTime(userTeamI.getTeamId());
-            teamDTO.setUserId(ids[1]);
+            userTeamMapper.deleteById(userTeamI);
+            team.setUserId(ids[1]);
             userTeamMapper.deleteById(ids[0]);
-            teamDTO.setUpdateTime(new Date());
-            Team team = new Team();
-            BeanUtils.copyProperties(teamDTO, team);
+            team.setUpdateTime(new Date());
             teamMapper.updateById(team);
             return true;
         }
@@ -265,6 +273,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         return true;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean deleteTeam(TeamDTO teamDTO, User loginUser) {
         // 1.检验请求参数是否为空
@@ -296,6 +305,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         for (Team team : teams) {
             TeamDTO teamDTO = new TeamDTO();
             BeanUtils.copyProperties(team, teamDTO);
+            teamDTO.setPassword("");
             teamDTOs.add(teamDTO);
         }
         return teamDTOs;
@@ -322,6 +332,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             if (!team.getUserId().equals(id)) {
                 TeamDTO teamDTO = new TeamDTO();
                 BeanUtils.copyProperties(team, teamDTO);
+                teamDTO.setPassword("");
                 teamDTOs.add(teamDTO);
             }
         }
@@ -340,6 +351,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         for (Team team : teams) {
             TeamDTO teamDTO = new TeamDTO();
             BeanUtils.copyProperties(team, teamDTO);
+            teamDTO.setPassword("");
             teamDTOs.add(teamDTO);
         }
         return teamDTOs;
@@ -360,6 +372,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         for (Team team : teamList) {
             TeamDTO teamDTO = new TeamDTO();
             BeanUtils.copyProperties(team, teamDTO);
+            teamDTO.setPassword("");
             teamDTOs.add(teamDTO);
         }
         return teamDTOs;

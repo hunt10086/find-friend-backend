@@ -1,6 +1,8 @@
 package com.dying.controller;
 
+import com.dying.common.BaseResponse;
 import com.dying.common.ErrorCode;
+import com.dying.common.ResultUtils;
 import com.dying.domain.User;
 import com.dying.domain.UserTeam;
 import com.dying.exception.BusinessException;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.xml.transform.Result;
 import java.util.List;
 
 import static com.dying.constant.UserConstant.USER_LOGIN_STATE;
@@ -32,7 +35,7 @@ public class UserTeamController {
     private UserTeamService userTeamService;
 
     @GetMapping("/list")
-    public List<User> list(Long teamId, HttpServletRequest request) {
+    public BaseResponse<List<User>> list(Long teamId, HttpServletRequest request) {
         if(teamId == null||teamId<=0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"查询队伍不存在");
         }
@@ -41,6 +44,6 @@ public class UserTeamController {
         if (user == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
         }
-        return userTeamService.getTeamPeople(teamId,user);
+        return ResultUtils.success(userTeamService.getTeamPeople(teamId,user));
     }
 }

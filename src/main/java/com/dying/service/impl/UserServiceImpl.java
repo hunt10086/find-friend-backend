@@ -148,8 +148,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         saftyUser.setUserAccount(originUser.getUserAccount());
         saftyUser.setAvatarUrl(originUser.getAvatarUrl());
         saftyUser.setGender(originUser.getGender());
-        saftyUser.setPhone(originUser.getPhone());
-        saftyUser.setEmail(originUser.getEmail());
+        saftyUser.setPhone("");
+        saftyUser.setEmail("");
         saftyUser.setUserStatus(originUser.getUserStatus());
         saftyUser.setCreateTime(originUser.getCreateTime());
         saftyUser.setUserRole(originUser.getUserRole());

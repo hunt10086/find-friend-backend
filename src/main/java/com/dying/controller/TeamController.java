@@ -9,6 +9,7 @@ import com.dying.domain.User;
 import com.dying.domain.request.CreateTeamRequest;
 import com.dying.domain.request.TeamDTO;
 import com.dying.exception.BusinessException;
+import com.dying.mapper.TeamMapper;
 import com.dying.service.TeamService;
 import com.dying.service.UserService;
 import com.dying.service.UserTeamService;
@@ -43,6 +44,9 @@ public class TeamController {
 
     @Resource
     private UserTeamService userTeamService;
+
+    @Resource
+    private TeamMapper teamMapper;
 
     @Operation(summary = "创建队伍")
     @PostMapping("/create")
@@ -165,5 +169,17 @@ public class TeamController {
         }
         List<TeamDTO> res=teamService.searchTeam(teamName,user);
         return ResultUtils.success(res);
+    }
+
+    @Operation(summary = "根据id查找队伍")
+    @GetMapping("searchByID")
+    public BaseResponse<Long> searchTeamByID(Long teamId,HttpServletRequest request) {
+        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) attribute;
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
+        }
+        Team team = teamMapper.selectById(teamId);
+        return ResultUtils.success(team.getUserId());
     }
 }
