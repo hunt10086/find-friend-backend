@@ -2,6 +2,7 @@ package com.dying.service;
 
 import com.dying.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dying.domain.UserVo;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -13,9 +14,9 @@ import java.util.List;
 */
 public interface UserService extends IService<User> {
 
-    public long userRegister(String userAccount, String password,String checkPassword,String email);
+    long userRegister(String userAccount, String password,String checkPassword,String email);
 
-    public User userLogin(String userAccount, String password, HttpServletRequest request);
+    User userLogin(String userAccount, String password, HttpServletRequest request,Double latitude, Double longitude);
 
 
     User getSaftyUser(User originUser);
@@ -29,4 +30,6 @@ public interface UserService extends IService<User> {
     boolean checkEmail(String email);
 
     List<User> backLike(User loginUser,Integer count);
+
+    List<UserVo> getNearUser(Long userId);
 }

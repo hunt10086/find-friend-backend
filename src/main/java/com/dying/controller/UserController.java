@@ -8,6 +8,7 @@ import com.dying.common.ErrorCode;
 import com.dying.common.ResultUtils;
 import com.dying.constant.UserConstant;
 import com.dying.domain.User;
+import com.dying.domain.UserVo;
 import com.dying.domain.request.UserLoginRequest;
 import com.dying.domain.request.UserRegisterRequest;
 import com.dying.exception.BusinessException;
@@ -49,11 +50,13 @@ public class  UserController {
 
     @Resource
     private UserService userService;
+
     @Resource
     private emailServiceImpl emailServiceImpl;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
 
     @Operation(summary = "发送验证码")
     @GetMapping("/sendCode")
@@ -116,11 +119,13 @@ public class  UserController {
         }
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
+        Double latitude = userLoginRequest.getLatitude();
+        Double longitude = userLoginRequest.getLongitude();
         if (StringUtils.isBlank(userAccount) || StringUtils.isBlank(userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户或密码为空");
         }
         log.info("登陆成功");
-        User user = userService.userLogin(userAccount, userPassword, request);
+        User user = userService.userLogin(userAccount, userPassword, request, latitude, longitude);
         return ResultUtils.success(user);
     }
 
@@ -217,6 +222,14 @@ public class  UserController {
         return ResultUtils.success(list,list.size());
     }
 
+    @Operation(summary = "附近用户")
+    @GetMapping("/nearUser")
+    public BaseResponse<List<UserVo>> nearUser(HttpServletRequest request) {
+        Long id=checkLogin(request);
+        List<UserVo> list=userService.getNearUser(id);
+        return ResultUtils.success(list);
+    }
+
     public boolean isAdmin(HttpServletRequest request) {
         Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
         User user = (User) attribute;
@@ -224,6 +237,15 @@ public class  UserController {
             return false;
         }
         return true;
+    }
+
+    private Long checkLogin(HttpServletRequest request){
+        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user1 = (User) attribute;
+        if (user1 == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
+        }
+        return user1.getId();
     }
 
 }

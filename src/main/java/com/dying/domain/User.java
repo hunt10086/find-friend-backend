@@ -91,4 +91,13 @@ public class User implements Serializable{
      * 个人简介
      */
     private String profile;
+    /**
+     *  经度 纬度
+     */
+    private Double latitude;
+
+    private Double longitude;
+
+
+
 }

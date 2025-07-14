@@ -9,7 +9,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dying.common.ErrorCode;
 import com.dying.domain.User;
+import com.dying.domain.UserVo;
 import com.dying.exception.BusinessException;
+import com.dying.service.GeoService;
 import com.dying.service.UserService;
 import com.dying.mapper.UserMapper;
 import com.dying.utils.MD5Utils;
@@ -17,9 +19,11 @@ import com.dying.utils.RegexUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +47,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private GeoService geoService;
 
     private static final String SALT = "Dying";
     //private static final String USER_LOGIN_STATE = "userLoginState";
@@ -101,7 +108,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public User userLogin(String userAccount, String password, HttpServletRequest request) {
+    public User userLogin(String userAccount, String password, HttpServletRequest request,Double latitude,Double longitude) {
         //账号密码不能为空
         if (StringUtils.isBlank(userAccount) || StringUtils.isBlank(password)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号密码为空");
@@ -127,7 +134,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if(user==null){
             log.info("用户或密码错误");
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户或密码错误");
-        }
+        };
+        user.setLatitude(latitude);
+        user.setLongitude(longitude);
+        userMapper.updateById(user);
         //用户脱敏
         User saftyUser=getSaftyUser(user);
         //记录用户登录态
@@ -230,6 +240,47 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> list= userList.stream().map(this::getSaftyUser).collect(Collectors.toList());
         stringRedisTemplate.opsForValue().set(USER_LIKE_STATE+loginUser.getTags()+count,JSONUtil.toJsonStr(list),USER_REDIS_EXPIRE, TimeUnit.MINUTES);
         return list;
+    }
+
+    @Override
+    public List<UserVo> getNearUser(Long userId) {
+        User loginUser=userMapper.selectById(userId);
+        double latitude = loginUser.getLatitude();
+        double longitude=loginUser.getLongitude();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.isNotNull("latitude");
+        queryWrapper.isNotNull("longitude");
+        queryWrapper.ne("id",userId);
+        List<User> userList = userMapper.selectList(queryWrapper);
+        List<UserVo> list= new ArrayList<>();
+        int i=0;
+        for(User user : userList){
+            if(i>10){
+                break;
+            }
+            double longitude2 = user.getLongitude();
+            double latitude2 = user.getLatitude();
+            double distance=getDistance(latitude,longitude,latitude2,longitude2);
+            if(distance<100){
+                UserVo userVo = new UserVo();
+                BeanUtils.copyProperties(user,userVo);
+                userVo.setDistance(distance);
+                i++;
+                list.add(userVo);
+            }
+        }
+        list.sort((o1, o2) -> Double.compare(o2.getDistance(), o1.getDistance()));
+        return list;
+
+    }
+
+
+    public double getDistance(Double latitude1, Double longitude1, Double latitude2, Double longitude2) {
+        geoService.addLocation("cities", "Beijing", longitude1, latitude1);
+        geoService.addLocation("cities", "Shanghai", longitude2, latitude2);
+
+        // 计算距离
+        return geoService.getDistance("cities", "Beijing", "Shanghai");
     }
 }
 

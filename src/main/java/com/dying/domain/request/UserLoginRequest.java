@@ -10,4 +10,11 @@ public class UserLoginRequest implements Serializable {
 
     private String userAccount;
     private String userPassword;
+
+    /**
+     *  经度 纬度
+     */
+    private Double latitude;
+
+    private Double longitude;
 }
