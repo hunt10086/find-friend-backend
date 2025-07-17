@@ -65,13 +65,13 @@ public class TeamController {
 
     @Operation(summary = "获取队伍列表")
     @GetMapping("/list")
-    public BaseResponse<List<TeamDTO>> listTeam(Integer count,HttpServletRequest request) {
+    public BaseResponse<List<TeamDTO>> listTeam(HttpServletRequest request) {
         Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
         User user = (User) attribute;
         if (user == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
         }
-        List<TeamDTO> res=teamService.getTeamList(user,count);
+        List<TeamDTO> res=teamService.getTeamList(user);
         return ResultUtils.success(res,res.size());
     }
 

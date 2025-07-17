@@ -96,19 +96,18 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     @Override
-    public List<TeamDTO> getTeamList(User loginUser, Integer count) {
+    public List<TeamDTO> getTeamList(User loginUser) {
         // 1. 检验用户登录态
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
-        //2. 分页返回所有队伍 不包含创建的和加入的
+        //2. 返回所有队伍 不包含创建的和加入的
         Long[] Ids = userTeamMapper.selectTeam(loginUser.getId());
+        System.out.println("=============================");
         System.out.println(Ids.length);
-        System.out.println("==================");
-        IPage<Team> ipage = new Page<>(count, TEAM_SIZE);
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("id", (Object[]) Ids);
-        List<Team> teamList = teamMapper.selectList(ipage, queryWrapper);
+        List<Team> teamList = teamMapper.selectList(queryWrapper);
         List<TeamDTO> teamDTOList = new ArrayList<>();
         for (Team team : teamList) {
             TeamDTO teamDTO = new TeamDTO();

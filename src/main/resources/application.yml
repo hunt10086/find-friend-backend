@@ -21,7 +21,6 @@ spring:
     url: jdbc:mysql://localhost:3306/base
     username: root
     password: 123456
-#    NRRH3prTcs7es2An
   #redis
   data:
     redis:
@@ -29,7 +28,7 @@ spring:
       port: 6379
       database: 0
   session:
-    timeout: 2h
+    timeout: 5h
 
 mybatis-plus:
     configuration:

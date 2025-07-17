@@ -18,7 +18,7 @@ public interface TeamService extends IService<Team> {
 
     boolean createTeam(CreateTeamRequest createTeamRequest, User loginUser);
 
-    List<TeamDTO> getTeamList(User loginUser,Integer count);
+    List<TeamDTO> getTeamList(User loginUser);
 
     boolean updateTeam(Long id, User loginUser, TeamDTO teamDto);
 

@@ -52,7 +52,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private GeoService geoService;
 
     private static final String SALT = "Dying";
-    //private static final String USER_LOGIN_STATE = "userLoginState";
     @Override
     public long userRegister(String userAccount, String password, String checkPassword,String email) {
         //账号密码不能为空

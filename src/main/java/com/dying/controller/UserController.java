@@ -107,8 +107,7 @@ public class  UserController {
         }
         long userId = currentUser.getId();
         User user = userService.getById(userId);
-        User saftyUser = userService.getSaftyUser(user);
-        return ResultUtils.success(saftyUser);
+        return ResultUtils.success(user);
     }
 
     @Operation(summary = "登录请求")
