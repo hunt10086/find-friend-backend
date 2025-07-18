@@ -4,6 +4,7 @@ import com.dying.common.BaseResponse;
 import com.dying.common.ErrorCode;
 import com.dying.common.ResultUtils;
 import com.dying.domain.Blog;
+import com.dying.domain.BlogVo;
 import com.dying.domain.User;
 import com.dying.domain.request.BlogRequest;
 import com.dying.exception.BusinessException;
@@ -11,7 +12,6 @@ import com.dying.service.BlogService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,7 +66,7 @@ public class BlogController {
     }
 
     @GetMapping("/list")
-    public BaseResponse<List<Blog>> getBlogList(HttpServletRequest request) {
+    public BaseResponse<List<BlogVo>> getBlogList(HttpServletRequest request) {
         Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) attribute;
         if (currentUser == null) {
@@ -116,4 +116,19 @@ public class BlogController {
         }
         return ResultUtils.success(blogService.getBlog(blogId, userId));
     }
+
+    @GetMapping("/my/list")
+    public BaseResponse<List<BlogVo>> getMyBlogList(HttpServletRequest request) {
+        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) attribute;
+        if (currentUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN, "未登录");
+        }
+        List<BlogVo> list=blogService.getMyBlog(currentUser.getId());
+        if(list==null||list.size()==0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"没有发布过任何内容");
+        }
+        return ResultUtils.success(list);
+    }
+
 }

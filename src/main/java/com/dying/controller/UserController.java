@@ -12,6 +12,7 @@ import com.dying.domain.UserVo;
 import com.dying.domain.request.UserLoginRequest;
 import com.dying.domain.request.UserRegisterRequest;
 import com.dying.exception.BusinessException;
+import com.dying.mapper.UserMapper;
 import com.dying.service.UserService;
 import com.dying.service.impl.emailServiceImpl;
 import com.dying.utils.RegexUtils;
@@ -20,6 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -56,6 +58,9 @@ public class  UserController {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private UserMapper userMapper;
 
 
     @Operation(summary = "发送验证码")
@@ -228,6 +233,23 @@ public class  UserController {
         List<UserVo> list=userService.getNearUser(id);
         return ResultUtils.success(list);
     }
+
+    @Operation(summary = "根据id查询")
+    @GetMapping("/search/one")
+    public BaseResponse<User> searchUserById(Long id, HttpServletRequest request) {
+        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) attribute;
+        if(currentUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
+        }
+        User user = userMapper.selectById(id);
+        User saftyUser = userService.getSaftyUser(user);
+        if(user==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户不存在");
+        }
+        return ResultUtils.success(saftyUser);
+    }
+
 
     public boolean isAdmin(HttpServletRequest request) {
         Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);

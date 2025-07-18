@@ -7,16 +7,20 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.dying.common.ErrorCode;
 import com.dying.domain.Blog;
+import com.dying.domain.BlogVo;
 import com.dying.domain.User;
 import com.dying.domain.request.BlogRequest;
 import com.dying.exception.BusinessException;
+import com.dying.mapper.UserMapper;
 import com.dying.service.BlogService;
 import com.dying.mapper.BlogMapper;
 import jakarta.annotation.Resource;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +42,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private UserMapper userMapper;
 
     @Override
     public boolean createBlog(BlogRequest blog, User loginUser){
@@ -95,13 +102,22 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     }
 
     @Override
-    public List<Blog> getBlogList(User loginUser){
+    public List<BlogVo> getBlogList(User loginUser){
         if(loginUser == null||loginUser.getId()==null||loginUser.getId()<0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"未登录");
         }
         QueryWrapper<Blog> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc("praise");
-        return blogMapper.selectList(queryWrapper);
+        List<Blog> blogList = blogMapper.selectList(queryWrapper);
+        List<BlogVo> list=new ArrayList<>();
+        for(Blog blog : blogList){
+            User user=userMapper.selectById(blog.getUserId());
+            BlogVo blogVo=new BlogVo();
+            BeanUtils.copyProperties(blog,blogVo);
+            blogVo.setAvatarUrl(user.getAvatarUrl());
+            list.add(blogVo);
+        }
+        return list;
     }
 
     @Override
@@ -147,6 +163,24 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         return blogMapper.selectById(blogId);
     }
 
+    @Override
+    public List<BlogVo> getMyBlog(Long userId){
+        if(userId==null||userId<0){
+            return null;
+        }
+        QueryWrapper<Blog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id",userId);
+        List<Blog> blogList = blogMapper.selectList(queryWrapper);
+        List<BlogVo> list=new ArrayList<>();
+        for(Blog blog : blogList){
+            User user=userMapper.selectById(blog.getUserId());
+            BlogVo blogVo=new BlogVo();
+            BeanUtils.copyProperties(blog,blogVo);
+            blogVo.setAvatarUrl(user.getAvatarUrl());
+            list.add(blogVo);
+        }
+        return list;
+    }
 
 }
 
