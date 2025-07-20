@@ -17,29 +17,29 @@ import java.util.List;
 @MapperScan("com.dying.mapper")
 class findFriendApplicationTests {
 
-    @Resource
-    private UserMapper userMapper;
-
-    @Resource
-    private UserService userService;
-
-    @Test
-    void getUserByTags(){
-        List<String> tags = new ArrayList<>();
-        tags.add("java");
-        tags.add("python");
-        List<User> list= userService.searchAllByTags(tags);
-        for(User user:list){
-            System.out.println(user.toString());
-        }
-    }
-
-    @Test
-    void checkEmail(){
-//        boolean flag = userService.checkEmail();
-        boolean flag= Validator.isEmail("2646130539@qq.com");
-        System.out.println("flag:"+flag);
-    }
-
+//    @Resource
+//    private UserMapper userMapper;
+//
+//    @Resource
+//    private UserService userService;
+//
+//    @Test
+//    void getUserByTags(){
+//        List<String> tags = new ArrayList<>();
+//        tags.add("java");
+//        tags.add("python");
+//        List<User> list= userService.searchAllByTags(tags);
+//        for(User user:list){
+//            System.out.println(user.toString());
+//        }
+//    }
+//
+//    @Test
+//    void checkEmail(){
+////        boolean flag = userService.checkEmail();
+//        boolean flag= Validator.isEmail("2646130539@qq.com");
+//        System.out.println("flag:"+flag);
+//    }
+//
 
 }

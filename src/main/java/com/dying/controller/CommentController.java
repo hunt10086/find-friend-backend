@@ -27,7 +27,7 @@ import static com.dying.constant.UserConstant.USER_LOGIN_STATE;
 @Slf4j
 @RequestMapping("/comment")
 @RestController()
-@CrossOrigin(origins = {"http://123.249.124.78:8080", "http://localhost:5173"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://www.seestars.top:9090", "http://localhost:9090"}, allowCredentials = "true")
 public class CommentController {
 
     @Resource

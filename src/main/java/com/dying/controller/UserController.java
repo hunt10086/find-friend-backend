@@ -46,7 +46,7 @@ import static com.dying.constant.UserConstant.USER_LOGIN_STATE;
 @RestController()
 @RequestMapping("/user")
 @Tag(name = "用户接口")
-@CrossOrigin(origins = {"http://123.249.124.78:8080","http://localhost:5173"},allowCredentials = "true")
+@CrossOrigin(origins = {"http://www.seestars.top:9090", "http://localhost:9090"}, allowCredentials = "true")
 @Slf4j
 public class  UserController {
 
@@ -119,7 +119,7 @@ public class  UserController {
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"清输入账号，密码");
         }
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
@@ -230,6 +230,9 @@ public class  UserController {
     @GetMapping("/nearUser")
     public BaseResponse<List<UserVo>> nearUser(HttpServletRequest request) {
         Long id=checkLogin(request);
+        if(id==null||id<=0){
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
+        }
         List<UserVo> list=userService.getNearUser(id);
         return ResultUtils.success(list);
     }

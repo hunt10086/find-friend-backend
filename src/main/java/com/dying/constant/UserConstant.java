@@ -15,7 +15,7 @@ public interface UserConstant {
 
      int USER_REDIS_EXPIRE = 60;
 
-     String USER_DEFAULT_TAGS = "[女]";
+     String USER_DEFAULT_TAGS = "[Java]";
 
      String USER_SEARCH="user:search";
     /**

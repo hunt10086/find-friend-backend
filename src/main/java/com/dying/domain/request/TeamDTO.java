@@ -63,6 +63,8 @@ public class TeamDTO {
      */
     private String icon;
 
+    private Long nowNum;
+
 
 
 }

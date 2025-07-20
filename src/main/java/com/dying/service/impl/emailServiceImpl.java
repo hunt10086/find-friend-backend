@@ -20,7 +20,7 @@ public class emailServiceImpl {
 
     public String sendEmailBackCode(String to) throws MessagingException, UnsupportedEncodingException {
         String code = RandomUtil.randomNumbers(6);
-        String text="This is a email to verify user information : <br/>"+code+ "<br/> Valid for five minutes";
+        String text=code+ "";
 
         MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);

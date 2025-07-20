@@ -17,14 +17,14 @@ import java.util.Date;
 @SpringBootTest
 @MapperScan("com.dying.mapper")
 public class insertUsers {
-
-    @Autowired
-    private UserService userService;
-
-
-    @Resource
-    private UserMapper userMapper;
-
+//
+//    @Autowired
+//    private UserService userService;
+//
+//
+//    @Resource
+//    private UserMapper userMapper;
+//
 
 
 }

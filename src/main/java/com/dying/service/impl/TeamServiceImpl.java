@@ -103,7 +103,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         //2. 返回所有队伍 不包含创建的和加入的
         Long[] Ids = userTeamMapper.selectTeam(loginUser.getId());
-        System.out.println("=============================");
         System.out.println(Ids.length);
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("id", (Object[]) Ids);
@@ -113,6 +112,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             TeamDTO teamDTO = new TeamDTO();
             BeanUtils.copyProperties(team, teamDTO);
             teamDTO.setPassword("");
+            QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+            userTeamQueryWrapper.eq("team_id", teamDTO.getId());
+            Long l = userTeamMapper.selectCount(userTeamQueryWrapper);
+            teamDTO.setNowNum(l);
             teamDTOList.add(teamDTO);
         }
         return teamDTOList;
@@ -305,6 +308,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             TeamDTO teamDTO = new TeamDTO();
             BeanUtils.copyProperties(team, teamDTO);
             teamDTO.setPassword("");
+            QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+            userTeamQueryWrapper.eq("team_id", teamDTO.getId());
+            Long l = userTeamMapper.selectCount(userTeamQueryWrapper);
+            teamDTO.setNowNum(l);
             teamDTOs.add(teamDTO);
         }
         return teamDTOs;
@@ -332,6 +339,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
                 TeamDTO teamDTO = new TeamDTO();
                 BeanUtils.copyProperties(team, teamDTO);
                 teamDTO.setPassword("");
+                QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+                userTeamQueryWrapper.eq("team_id", teamDTO.getId());
+                Long l = userTeamMapper.selectCount(userTeamQueryWrapper);
+                teamDTO.setNowNum(l);
                 teamDTOs.add(teamDTO);
             }
         }
@@ -351,6 +362,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             TeamDTO teamDTO = new TeamDTO();
             BeanUtils.copyProperties(team, teamDTO);
             teamDTO.setPassword("");
+            QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+            userTeamQueryWrapper.eq("team_id", teamDTO.getId());
+            Long l = userTeamMapper.selectCount(userTeamQueryWrapper);
+            teamDTO.setNowNum(l);
             teamDTOs.add(teamDTO);
         }
         return teamDTOs;

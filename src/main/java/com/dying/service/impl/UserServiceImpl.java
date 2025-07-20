@@ -134,14 +134,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.info("用户或密码错误");
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户或密码错误");
         };
-        user.setLatitude(latitude);
-        user.setLongitude(longitude);
         userMapper.updateById(user);
         //用户脱敏
         User saftyUser=getSaftyUser(user);
         //记录用户登录态
         request.getSession().setAttribute(USER_LOGIN_STATE,saftyUser);
-
 
         return saftyUser;
     }
@@ -222,17 +219,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public List<User> backLike(User loginUser,Integer count){
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        String s=loginUser.getTags();
-        if("".equals(s)){
-            s=USER_DEFAULT_TAGS;
-        }
-        List<String> tagsList=JSONUtil.toList(JSONUtil.parseArray(s),String.class);
+        queryWrapper.notIn("id",loginUser.getId());
+        List<String> tagsList=JSONUtil.toList(JSONUtil.parseArray(USER_DEFAULT_TAGS),String.class);
         if(stringRedisTemplate.opsForValue().get(USER_LIKE_STATE+loginUser.getTags()+count)!=null){
             return JSONUtil.toList(stringRedisTemplate.opsForValue().get(USER_LIKE_STATE+loginUser.getTags()+count),User.class);
         }
-        for (String tag : tagsList) {
-            queryWrapper=queryWrapper.like("tags",tag);
-        }
+        queryWrapper.in("tags",loginUser.getTags());
+//        for (String tag : tagsList) {
+//            queryWrapper=queryWrapper.like("tags",tag);
+//        }
         IPage<User> page=new Page<>(count,USER_PAGE_SIZE);
         userMapper.selectPage(page,queryWrapper);
         List<User> userList = page.getRecords();
@@ -254,13 +249,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<UserVo> list= new ArrayList<>();
         int i=0;
         for(User user : userList){
-            if(i>10){
+            if(i>15){
                 break;
             }
             double longitude2 = user.getLongitude();
             double latitude2 = user.getLatitude();
             double distance=getDistance(latitude,longitude,latitude2,longitude2);
-            if(distance<100){
+            if(distance<1000){
                 UserVo userVo = new UserVo();
                 BeanUtils.copyProperties(user,userVo);
                 userVo.setDistance(distance);
@@ -268,7 +263,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 list.add(userVo);
             }
         }
-        list.sort((o1, o2) -> Double.compare(o2.getDistance(), o1.getDistance()));
+        list.sort((o1, o2) -> Double.compare(o1.getDistance(), o2.getDistance()));
         return list;
 
     }
