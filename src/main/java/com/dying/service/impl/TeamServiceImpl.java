@@ -215,7 +215,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         QueryWrapper<UserTeam> queryWrapper1 = new QueryWrapper<>();
         queryWrapper1.eq("team_id", teamDTO.getId());
         long count = userTeamMapper.selectCount(queryWrapper1);
-        if (count >= TEAM_MAX_USER_LENGTH) {
+        if (count >= teamDTO.getMaxNum()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍人数已满");
         }
         // 6.插入数据

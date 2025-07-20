@@ -11,7 +11,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {  
         // 添加映射路径  
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:9090","http://123.249.124.78:9090","http://www.seestars.top:9090") // 允许哪些域的请求，星号代表允许所有
+                .allowedOrigins("http://localhost:9090","http://123.249.124.78:9090","http://www.seestars.top:9090","http://www.seestars.top:80") // 允许哪些域的请求，星号代表允许所有
                 .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE") // 允许的方法
                 .allowedHeaders("*") // 允许哪些请求头
                 .exposedHeaders("*")

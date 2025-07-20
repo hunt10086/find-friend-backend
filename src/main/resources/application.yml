@@ -52,7 +52,7 @@ server:
   servlet:
     context-path: /api
     session:
-      timeout: 1800
+      timeout: 3600
 
 
 
