@@ -103,11 +103,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         userMapper.insert(user);
         log.info("用户创建成功");
+
+        // 缓存预热：预先生成第一页推荐
+        backLike(user, 1);
+
         return 0;
     }
 
     @Override
-    public User userLogin(String userAccount, String password, HttpServletRequest request,Double latitude,Double longitude) {
+    public User userLogin(String userAccount, String password, HttpServletRequest request, Double latitude, Double longitude) {
         //账号密码不能为空
         if (StringUtils.isBlank(userAccount) || StringUtils.isBlank(password)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号密码为空");
@@ -140,6 +144,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //记录用户登录态
         request.getSession().setAttribute(USER_LOGIN_STATE,saftyUser);
 
+        // 缓存预热：预先生成第一页推荐
+        backLike(saftyUser, 1);
+
         return saftyUser;
     }
 
@@ -170,6 +177,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return false;
         }
         userMapper.updateById(user);
+        // 缓存预热：预先生成第一页推荐
+        backLike(user, 1);
         return true;
     }
 
@@ -217,23 +226,74 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public List<User> backLike(User loginUser,Integer count){
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.notIn("id",loginUser.getId());
-        List<String> tagsList=JSONUtil.toList(JSONUtil.parseArray(USER_DEFAULT_TAGS),String.class);
-        if(stringRedisTemplate.opsForValue().get(USER_LIKE_STATE+loginUser.getTags()+count)!=null){
-            return JSONUtil.toList(stringRedisTemplate.opsForValue().get(USER_LIKE_STATE+loginUser.getTags()+count),User.class);
+    public List<User> backLike(User loginUser, Integer count) {
+        final List<String> myTags;
+        if (StringUtils.isBlank(loginUser.getTags())) {
+            myTags = new ArrayList<>();
+            myTags.add("Java");
+        } else {
+            List<String> tempTags;
+            try {
+                tempTags = JSONUtil.toList(JSONUtil.parseArray(loginUser.getTags()), String.class);
+            } catch (Exception e) {
+                tempTags = new ArrayList<>();
+            }
+            if (tempTags.isEmpty()) {
+                tempTags.add("Java");
+            }
+            myTags = tempTags;
         }
-        queryWrapper.in("tags",loginUser.getTags());
-//        for (String tag : tagsList) {
-//            queryWrapper=queryWrapper.like("tags",tag);
-//        }
-        IPage<User> page=new Page<>(count,USER_PAGE_SIZE);
-        userMapper.selectPage(page,queryWrapper);
-        List<User> userList = page.getRecords();
-        List<User> list= userList.stream().map(this::getSaftyUser).collect(Collectors.toList());
-        stringRedisTemplate.opsForValue().set(USER_LIKE_STATE+loginUser.getTags()+count,JSONUtil.toJsonStr(list),USER_REDIS_EXPIRE, TimeUnit.MINUTES);
-        return list;
+
+        // 1. Redis缓存优先
+        String cacheKey = USER_LIKE_STATE + ":" + loginUser.getId() + ":" + String.join(",", myTags) + ":" + count;
+        String cacheValue = stringRedisTemplate.opsForValue().get(cacheKey);
+        if (StringUtils.isNotBlank(cacheValue)) {
+            return JSONUtil.toList(cacheValue, User.class);
+        }
+
+        // 2. 查询所有其他用户，且tags不为空
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne("id", loginUser.getId());
+        queryWrapper.isNotNull("tags");
+        queryWrapper.ne("tags", "");
+        List<User> allUsers = userMapper.selectList(queryWrapper);
+
+        // 3. 计算相似度
+        List<User> sortedUsers = allUsers.stream()
+            .peek(u -> {
+                List<String> tags;
+                try {
+                    tags = JSONUtil.toList(JSONUtil.parseArray(u.getTags()), String.class);
+                } catch (Exception e) {
+                    tags = new ArrayList<>();
+                }
+                int similarity = 0;
+                for (String tag : myTags) {
+                    if (tags.contains(tag)) {
+                        similarity++;
+                    }
+                }
+                u.setUserStatus(similarity); // 临时存储相似度
+            })
+            .sorted((u1, u2) -> Integer.compare(u2.getUserStatus(), u1.getUserStatus()))
+            .collect(Collectors.toList());
+
+        // 4. 分页
+        int pageSize = USER_PAGE_SIZE;
+        int start = (count - 1) * pageSize;
+        int end = Math.min(start + pageSize, sortedUsers.size());
+        if (start >= end) {
+            return new ArrayList<>();
+        }
+        List<User> result = sortedUsers.subList(start, end);
+
+        // 5. 返回脱敏用户
+        List<User> safeList = result.stream().map(this::getSaftyUser).collect(Collectors.toList());
+
+        // 6. 写入缓存
+        stringRedisTemplate.opsForValue().set(cacheKey, JSONUtil.toJsonStr(safeList), USER_REDIS_EXPIRE, TimeUnit.MINUTES);
+
+        return safeList;
     }
 
     @Override

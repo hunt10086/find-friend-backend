@@ -1,9 +1,7 @@
 package com.dying.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dying.common.ErrorCode;
 import com.dying.domain.Team;
@@ -345,6 +343,32 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
                 teamDTO.setNowNum(l);
                 teamDTOs.add(teamDTO);
             }
+        }
+        return teamDTOs;
+    }
+
+    @Override
+    public List<TeamDTO> getTeams(User loginUser){
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "未登录");
+        }
+        Long id = loginUser.getId();
+        //我加入的队伍
+        QueryWrapper<UserTeam> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq("user_id", loginUser.getId());
+        List<UserTeam> userTeams = userTeamMapper.selectList(queryWrapper1);
+        List<TeamDTO> teamDTOs = new ArrayList<>();
+        for(UserTeam userTeam : userTeams) {
+            Long teamId = userTeam.getTeamId();
+            Team team = teamMapper.selectById(teamId);
+            TeamDTO teamDTO = new TeamDTO();
+            BeanUtils.copyProperties(team, teamDTO);
+            teamDTO.setPassword("");
+            QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+            userTeamQueryWrapper.eq("team_id", teamDTO.getId());
+            Long l = userTeamMapper.selectCount(userTeamQueryWrapper);
+            teamDTO.setNowNum(l);
+            teamDTOs.add(teamDTO);
         }
         return teamDTOs;
     }

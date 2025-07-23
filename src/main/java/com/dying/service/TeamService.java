@@ -32,6 +32,8 @@ public interface TeamService extends IService<Team> {
 
     List<TeamDTO> getJoinTeam(User loginUser);
 
+    List<TeamDTO> getTeams(User logonUser);
+
     List<TeamDTO> searchTeam(String teamName, User loginUser);
 
     List<TeamDTO> getOneTeam(Long id, User loginUser);

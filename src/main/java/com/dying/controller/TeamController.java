@@ -182,4 +182,20 @@ public class TeamController {
         Team team = teamMapper.selectById(teamId);
         return ResultUtils.success(team.getUserId());
     }
+
+    @GetMapping("/get/team")
+    public BaseResponse<List<TeamDTO>> getTeam(HttpServletRequest request) {
+        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) attribute;
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN,"未登录");
+        }
+        List<TeamDTO> teams=teamService.getTeams(user);
+        if(teams==null||teams.size()<=0){
+            return ResultUtils.error(null);
+        }else{
+            return ResultUtils.success(teams);
+        }
+    }
+
 }
